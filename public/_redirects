@@ -1,0 +1,20 @@
+
+## Created with gatsby-plugin-netlify
+/tutorials/  /tutorials/v3/  301!
+/how-to-guides/  /how-to-guides/v3/  301!
+/v3/  /v3/getting-started/overview/  301!
+/v3/getting-started/  /v3/getting-started/overview/  301!
+/v3/concepts/  /v3/concepts/runtime/  301!
+/v3/runtime/  /v3/runtime/frame/  301!
+/v3/integration/  /v3/integration/polkadot-js/  301!
+/v3/advanced/  /v3/advanced/account-info/  301!
+/tutorials/v3/kitties/  /tutorials/v3/kitties/pt1/  301!
+/tutorials/v3/cumulus/  /tutorials/v3/cumulus/start-relay/  301!
+/how-to-guides/basics/  /how-to-guides/v3/basics/pallet-integration/  301!
+/how-to-guides/pallet-design/  /how-to-guides/v3/pallet-design/contracts-pallet/  301!
+/how-to-guides/weights/  /how-to-guides/v3/weights/calculate-fees/  301!
+/how-to-guides/testing/  /how-to-guides/v3/testing/basics/  301!
+/how-to-guides/storage-migrations/  /how-to-guides/v3/storage-migrations/basics/  301!
+/how-to-guides/consensus/  /how-to-guides/v3/consensus/pow/  301!
+/how-to-guides/parachains/  /how-to-guides/v3/parachains/connect/  301!
+/how-to-guides/tools/  /how-to-guides/v3/tools/try-runtime/  301!

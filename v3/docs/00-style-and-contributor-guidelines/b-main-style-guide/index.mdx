@@ -1,0 +1,353 @@
+---
+title: Frequently Asked Questions-常见问题答疑
+slug: /v3/contribute/writing
+version: 3.0
+section: docs
+category: style guide
+keywords: contribute, style guide
+---
+
+- 1，什么是DeeperChain？
+- 2，如何接入DeeperChain-安装，部署说明？
+- 3，如何在DeeperChain区块链上存储大文件？
+- 4，DeeperChain是基于什么区块链框架开发的，为什么基于这个框架开发？
+- 5，DeeperChain模块子系统包含哪些，未来愿景是什么？
+- 6，DeeperChain的账户体系是什么样的？
+- 7，DeeperChain的区块链的特点是什么？
+
+- 8，DeeperChain区块链的参数怎么样，出块时间，出块奖励？
+- 9，DeeperChain可以和以太坊进行数据交互吗或者说可以和不同区块链进行资产跨链吗？
+- 10，DeeperChain支持智能合约吗？
+- 11，DeeperChain的微支付MicroPayment pallet是什么？
+- 12，DeeperChain交易可以离线签署，然后在另一台在线设备上提交吗？
+- 13，如何接入DeeperChain测试网？
+- 14，DeeperChain的交易可以由第三方发送吗？即交易广播可以外包吗
+- 15，DeeperChain的区块浏览器地址是什么，如何使用？
+- 16，通过DeeperChain网络发送的数据和合约的内容是否加密？
+- 17，我可以在DeeperChain网络上存储机密或密码吗？
+- 18，DeeperChain可以进行挖矿吗，有矿池的概念吗？
+- 19，DeeperChain将如何应对不断增长的区块链规模？
+- 20，DeeperChain目前的TPS支持多少，将如何确保网络能够每秒进行 10,000 多笔交易？
+- 21，DeeperChain的deeper node pallet的作用是什么？
+- 22，DeeperChain的pocr共识机制是如何运行的，credit pallet的作用是什么？
+- 23，DeeperChain支持Wasm虚拟机来运行智能合约吗？
+
+# **回答：**
+
+# 1，什么是DeeperChain？
+
+Deeper Chain是通过Substrate框架实现的真正去中心化的公共区块链。Deeper Chain是高度安全，高效且能耗低的。Deeper Chain由两层组成。顶层由数百个验证器节点组成，并由Deeper Layer的节点保护；最底层称为Deeper Layer，它由对等连接的Deeper节点组成。分配给Deeper节点进行带宽共享的采矿奖励将导致网络的更多参与和增强。这种闭环提高了整个网络的安全性； Deeper的PoCr共识机制可确保网络抵抗各种常见威胁，例如Sybil，Eclipse和51％攻击。
+
+# 2，如何接入DeeperChain-编译，安装运行说明？
+
+下载代码：[https://github.com/deeper-chain/deeper-chain.git](https://github.com/deeper-chain/deeper-chain.git)
+
+```
+安装依赖：
+rustup install nightly-2021-03-11
+rustup target add wasm32-unknown-unknown --toolchain nightly-2021-03-11
+
+# fix environmental package bug if it happens
+cargo update -p environmental
+
+# thread_local 1.1.2 has a bug: "memory leak"
+cargo update -p thread_local
+
+# update libp2p-swarm from v0.27.1 to v0.27.2
+cargo update -p libp2p-swarm
+
+# compile本地编译
+cargo build --release
+
+#单个节点运行：
+`./target/release/deeper-chain purge-chain --dev`
+
+Start a dev chain:
+`./target/release/deeper-chain --dev`
+
+Or, start a dev chain with detailed logging:
+`RUST_LOG=debug RUST_BACKTRACE=1 ./target/release/deeper-chain -lruntime=debug --dev`
+```
+
+# 3，如何在DeeperChain区块链上存储大文件？
+
+DeeperChain采用Substrate作为一个通用的区块链开发框架，Substrate提供了丰富的数据类型用于在链上存储数据。它是基于Rust语言开发的，所支持的数据类型是Rust原生类型的子集，以及这些原生类型构成的映射类型，同时要满足一定的编解码条件。通常把它们分为以下四种：
+
+- 单值类型，可用来存储某种单一类型的值，如布尔，数值，枚举，结构体等。
+- 简单映射类型，类型标识为map，可以存储键值对，通过key可以索引到value，并进行相应的修改。
+- 链接映射类型，类型标识为linked_map，和map类型类似，也是用于存储键值对，不同的是linked_map可以对所有的键值对进行遍历操作，而map目前只能对值（value）进行遍历，不能遍历所有的键（key），更多内容参考这个issue: [Default keys to something enumerable](https://link.zhihu.com/?target=https%3A//github.com/paritytech/substrate/issues/4610)和之前的PR: [Introduce prefixed storage with enumeration](https://link.zhihu.com/?target=https%3A//github.com/paritytech/substrate/pull/4185)。
+- 双键映射类型，类型标识为double_map，顾名思义，两个key，对应一个value，主要目的是通过第一个键（key 1）快速删除任意key 2的记录，也可以遍历key 1对应的所有的值。
+
+大文件如图片、视频直接存储在链上的成本很高，如果不希望在区块链中存储大文件或数据片段。您可以使用第三方存储解决方案，例如 IPFS，只需要在链上存储对应内容hash，这个内容hash值可以存放到区块里面，区块根据hash索引到元数据。
+
+
+# 4，DeeperChain是基于什么区块链框架开发的，为什么基于这个框架开发？
+
+Deeper Chain是通过Substrate框架实现的公链，通过substrate搭建的公链有很多优势：
+
+1，Substrate提供了丰富的高质量的组件, Substrate的可定制程度很高。比如共识中的pow，aura，babe，grandpa，共识可以改为更加有意思的混合共识: pow + grandpa 。
+
+2，还比如runtime中的许多pallet. 让我们可以拿来就可以集成到我们的区块链中。Substrate的runtime包含了很多可选用模块：逻辑系统、共识、超级权限、块确认、账户、时间戳、余额、抵押、国库、system等等。
+
+Substrate具体包含了模块如下：
+
+核心模块：数据库、交易队列、命令行界面、公/私钥生成、RPC等
+
+基本逻辑：数据结构、结算、时间戳
+
+p2p网络：网络节点管理、私讯协议集成、分布式哈希表
+
+共识机制：抵押、Babe、Grandpa、区块落实追踪
+
+链上治理：民主、投票、议会、国库
+
+Dapp：智能合约
+
+因此使用Substrate框架可以很大自由度定制化区块链：
+
+3，Substrate的一个优势是使用了rust语言, 这是为认为目前最好的语言，高效和安全。
+
+4，另外使用 Substrate 还可以方便的接入波卡生态圈, 未来拥有无限的可能性。
+
+5，Substrate打破公链升级困难的问题，采用native runtime和WebAssembly方案，优先选择native runtime。
+
+6，Substrate同时是polkadot的底层技术，polkadot在Substrate上建立了平行链（parachains、区块整理collators、跨链通讯协定Cross chain Message Passing、私讯协议Gossip Protocol、持续可用存储Persistent Availability Store、平行线程Parathreads、众筹模块Crowd Funding、赔偿Claims、拍卖Auctions、公正Registar等。
+
+
+
+# 5，DeeperChain模块子系统包含哪些，未来愿景是什么？
+
+DeeperChain其他子系统包括：
+
+[balance](https://github.com/deeper-chain/deeper-chain/tree/master/pallets/balances)：账户系统
+
+[bridge](https://github.com/deeper-chain/deeper-chain/tree/master/pallets/bridge)（模块暂废弃）：跨链桥，deeper链的资产可以通过bridge跨链的其他链。
+
+[credit](https://github.com/deeper-chain/deeper-chain/tree/master/pallets/credit)：信用积分，跟pocr共识机制相关的
+
+deeper-node：记录硬件节点信息到区块链上
+
+`micropayment`：在deeper-connect，抵押余额，打开或者关闭通道，进行点对点的进行交易
+
+[staking](https://github.com/deeper-chain/deeper-chain/tree/master/pallets/staking)：维护管理基金池的模块
+
+未来愿景：
+
+deeper产品的目前内层需求通过Atmos网络安全操作系统对外提供各种服务，
+
+包括：
+
+1，一种去中心化VPN 规避网络审查，无障碍的浏览网络数据；
+
+2，抵御网络攻击，避免被追踪和网络干扰，安全网络控制；
+
+3，分享网络带宽获得盈利；
+
+用户通过购买deeper-connect硬件设备可以体验这些服务。
+
+外层需求通过deeperChain区块链为引擎，实现具有数据保密属性，用户数据确权，用户匿名属性和可信web3.0互联网的基础设施。
+
+实现：
+
+1，安全的网络共享平台；
+
+2，区块链共识网络平台；
+
+3，用户拥有个人数据主权的可信互联网平台；
+
+# 6，DeeperChain的账户体系是什么样的？
+
+DeeperChain 中的 Staking 模块引入了抽象账户体系，以便尽可能保障资金的安全。
+
+这些抽象是：
+
+- 账户
+    - 隐匿密钥（Stash Key）：隐匿账户用来存放大量资金，因此它的私钥应尽可能安全地放在冷钱包中。
+    - 控制密钥（Controller Key）：控制账户可通过签名来控制隐匿账户的行为，比如用户的支付偏好；他应该仅保留用来支付交易费的最低额度的资金。由于它可能影响验证者的设置，应该保证私钥安全，但也需要在日常维护时使用。
+- 会话密钥（Session Keys）：会话密钥是保存在验证者客户端中的“热”密钥，用于对特定操作进行签名。它们不应持有资金。
+
+## **账户密钥**
+
+密钥对代表一个账户，并可以控制资金，类似于其他区块链中的普通账户。在 Substrate 的 **[Balances 模块](https://substrate.dev/rustdocs/v2.0.0/pallet_balances/index.html)**中，账户必须有不低于最低金额（保证金）的余额来确保账户保留在存储中。
+
+账户密钥可以自由定义，在 runtime 中才有实际意义。
+
+隐匿账户和控制账户中，密钥是以用途区分的，与底层的加密差异无关。从密码学的角度来看，创建隐匿密钥或控制密钥与所有普通账户密钥没区别。
+
+### **隐匿密钥**
+
+隐匿密钥是隐匿账户的公钥/私钥对。这个账户就像一个“储蓄账户”，你不应该经常与它进行交易。因此，私钥应以最安全的方式来处理，例如在安全层或用安全硬件来加以保护。
+
+隐匿密钥处于离线状态，它指定一个控制账户，根据隐匿账户的资金权重，来做出与支付无关的决定。它还可以指定一个代理账户代表它在治理中进行投票。
+
+### **控制密钥**
+
+控制密钥是定义控制帐户的公/私钥对。在 Substrate 的 NPOS 模型中，控制密钥用来代表某个人验证或提名。
+
+控制密钥用来进行奖励收取等相关设置，如果是验证者，则用于设置其会话密钥。控制账户只需要支付交易费，所以只应持有最小限度的资金。
+
+永远不要用控制密钥从其存储账户中支出资金。然而，控制账户的行为可能会导致花销，因此仍应妥善处理。
+
+### **密钥生成**
+
+如果会话密钥被泄露，攻击者可提交导致节点权益损失的行为。会话密钥应该定期更改 (例如每次会话中)，可通过**`[rotate_keys` RPC](https://substrate.dev/rustdocs/v2.0.0/sc_rpc/author/trait.AuthorApi.html#tymethod.rotate_keys)**。
+
+
+# 7，DeeperChain的区块链的特点是什么？
+
+1，Deeper链分为两层架构，顶层由验证节点组成，拥有区块交易打包和投票权，底层是deeper硬件设备组成组成的区块链一般节点，可以通过dpr获得验证节点权限，一般节点通过提供共享带宽来获取信用积分
+
+2.  质押越早获得的创世节点排名越靠前，创世节点排名越靠前，质押奖励程度越高
+
+3，质押DPR的数量将决定设备获得的信用分以及推荐名额的数量
+
+# 8，DeeperChain区块链的参数怎么样，区块奖励，出块时间等？
+
+发行总量：100亿
+
+出块时间：5秒
+
+出块奖励：（每个区块的奖励）Reward_Per_Block每过4个era会调整一次，每过4个era，我们会从剩余的总奖励中减去过去4个era发放的奖励，并更新剩余的总收益，再用剩余总收益 R / RewardAdjustFactor 得到新的Reward_Per_Block，这里的RewardAdjustFactor也是一个常数77_760_000，每个era (设置为大约1天的时间)，总的staking奖励: Reward_Per_Block x Blocks_Per_Era，那个era的奖励是500DPR。
+
+# 9，DeeperChain可以和以太坊进行数据交互吗或者说可以和不同区块链进行资产跨链吗？
+
+1，波卡的跨链，是通过中继链和平行链插槽来实现平行链之间的跨链，deeperchain可以申请成为波卡的平行链，就可以通过波卡的中继链和平行链插槽来实现平行链之间的跨链。
+
+2，目前deeper chain正在开发bridge pallet，未来可以ETH DPR 与Substrate DPR的跨链。
+
+# 10，DeeperChain支持智能合约吗？
+
+1，[Substrate](https://github.com/paritytech/substrate)的`runtime`没有集成`EVM`，需要使用`Parity`另外一个项目：[Frontier](https://github.com/paritytech/frontier)。`Frontier`是`Substrate`的以太坊兼容层。在这个项目中，增加了`pallet-evm`、`pallet-ethereum`、`rpc-ethereum`，可以最大程度的模拟以太坊的环境，以便可以无缝对接当前以太坊生态里面`DApp`及第三方工具，如`remix`、`metamask`等。这样DeeperChain就可以支持以太坊体系的智能合约，比如solidity。
+
+2，subtrate另外提供一种智能合约虚拟机，可以添加到你的 Substrate Runtime，FRAME 合约模块(SEAL) 为 Runtime 提供部署和执行 WebAssembly 智能合约的功能。Substrate 的`pallet-contracts`采用Wasm虚拟机来运行合约。Substrate 有一个开箱即用的 Wasm 智能合约平台。因为 Substrate 使用 Wasm，你可以使用任何兼容的语言构建智能合约。Parity 为此还建立了 ink!，一个基于 Rust 的 eDSL。
+
+# 11，DeeperChain的微支付MicroPayment pallet是什么？
+
+The Micropayment pallet为 Deeper Connect 设备提供了打开/关闭小额支付渠道的功能，以及为服务设备提供从通道申请小额支付的功能。
+
+详细介绍：
+
+[https://github.com/deeper-chain/deeper-chain/tree/master/pallets/micropayment](https://github.com/deeper-chain/deeper-chain/tree/master/pallets/micropayment)
+
+# 12，DeeperChain交易可以离线签名，然后在另一台在线设备上提交吗？
+
+不清楚，待问。
+
+# 13，如何接入DeepeChain测试网？
+
+测试网络rpc：wss://testnet-02.deepernetworks.org
+
+如果你是钱包开发者，你只需要使用 Polkadot JS API 库。当您创建 ApiPromise 实例时，您需要像这样将自定义类型添加到配置对象中：
+
+[http://github.com/deeper-chain/deeper-chain/blob/master/scripts/types.json](http://github.com/deeper-chain/deeper-chain/blob/master/scripts/types.json)
+
+```
+// Import
+import { ApiPromise, WsProvider } from '@polkadot/api';
+
+...
+// Construct
+const wsProvider = new WsProvider('wss://testnet-02.deepernetworks.org');
+const types = ... // TODO you need to set the custom types here
+const api = await ApiPromise.create({ provider: wsProvider, types });
+
+// Do something
+console.log(api.genesisHash.toHex());
+```
+# 14，DeeperChain的交易可以由第三方发送吗？即交易广播可以外包吗？
+
+从技术上讲是的，在Substrate中的交易不再称为Transaction，而是称为了Extrinsic，其中第一点是显然的，只要基于公私钥体系，就一定需要发送者对这个发送的内容进行签名，在链上通过这个签名验证合法性，解析出发送者的公钥识别身份。
+
+这两点对应到Substrate的交易模板上即为 `primitives/runtime/src/generic/unchecked_extrinsic.rs:L32`：
+
+`/// A extrinsic right from the external world. This is unchecked and so
+/// can contain a signature.
+**#[derive(PartialEq, Eq, Clone)]pub** **struct** **UncheckedExtrinsic<**Address, Call, Signature, Extra**>where**
+    Extra: **SignedExtension**
+{
+    /// The signature, address, number of extrinsics have come before from
+    /// the same signer and an era describing the longevity of this transaction,
+    /// if this is a signed extrinsic.
+    **pub** signature: Option**<**(Address, Signature, Extra)**>**,  *// 对应第一点*
+    /// The function that should be called.
+    **pub** function: **Call**,  *// 对应第二点*
+}`
+
+其中显然：
+
+- signature: 就是发送者的身份标示与验证的信息
+- function: 就是发送者的意图指令，**类型为`Call`**，用于调用链上的相应功能，例如转账`transfer`。这块即是一条**链对外提供的功能**，也是一条链的Runtime的入口组成部分。一个区块打包了所有的交易，执行区块的过程即是在Runtime中执行每一条交易的`function`的指令。这部分在后续的文章中将会详细讲解。
+
+我们可以看到`signature`由3个部分组成：
+
+- Address 发送者的地址
+- Signature 发送者对交易体的签名
+- Extra **额外**的验证信息
+
+首先要介绍一下一个Extrinsic从外部到链内部的过程：
+
+
+首先验证交易的签名合法性，然后验证额外信息（Extra）的合法性验证，才进入交易池。
+
+# 15，DeeperChain的区块浏览器地址是什么，如何使用？
+
+下载波卡钱包插件：[https://polkadot.js.org/extension/](https://polkadot.js.org/extension/)，可用于管理deeperchain账户和交易签名deeperchain上的交易，可使用 Polkadot JS 插件序与deeperchain交互
+
+Deeperchain Rpc：wss://mainnet-deeper-chain.deeper.network
+
+可以在https://polkadot.js.org/apps/打开deeperchain 的rpc调用函数：
+
+# 16，通过DeeperChain网络发送的数据和合约的内容是否加密？
+
+Deeperchain网络上的数据和合约经过编码，但未加密。在将数据广播到网络之前，您始终可以自由地在本地加密数据。
+
+# 17，我可以在DeeperChain网络上存储机密或密码吗？
+
+可以。
+
+**控制密钥**
+
+控制密钥是定义控制帐户的公/私钥对。在 Substrate 的 NPOS 模型中，控制密钥用来代表某个人验证或提名。
+
+控制密钥用来进行奖励收取等相关设置，如果是验证者，则用于设置其会话密钥。控制账户只需要支付交易费，所以只应持有最小限度的资金。
+
+永远不要用控制密钥从其存储账户中支出资金。然而，控制账户的行为可能会导致花销，因此仍应妥善处理。
+
+**密钥生成**
+
+如果会话密钥被泄露，攻击者可提交导致节点权益损失的行为。会话密钥应该定期更改 (例如每次会话中)，可通过**`[rotate_keys` RPC](https://substrate.dev/rustdocs/v2.0.0/sc_rpc/author/trait.AuthorApi.html#tymethod.rotate_keys)**。
+
+# 18，DeeperChain可以进行挖矿吗，有矿池的概念吗？
+
+可以挖矿，但目前没有矿池的概念。
+
+# 19，DeeperChain将如何应对不断增长的区块链规模？
+
+1，关于区块链可扩展性有很多讨论，通过在多个波卡平行链上分布传输，Polkadot 未来将成为一个高度可扩展的网络，数据信息也将需要在平行链链上进行大量的传输，Polkadot 是一个异构的多链框架，它使区块链网络能够在共享安全的保护下协同工作。但波卡平行链插槽数量有限，需要持有 Dot 并赢得插槽拍卖才能加入网络。
+
+2，若未赢得插槽拍卖，Layer 2 的解决方案至关重要。
+
+# 20，DeeperChain目前的TPS支持多少，将如何确保网络能够每秒进行 10,000 多笔交易？
+
+deeper目前共识算法PoCr 是一种pos机制，如何增加每秒交易量的更多信息，目前还需要进一步测试。
+
+# 21，DeeperChain的deeper node pallet的作用是什么？
+
+deeper-node：记录硬件节点注册到区块链上的信息，包括deeper硬件的ipv4，国家区域信息等等。
+
+[https://github.com/deeper-chain/deeper-chain/blob/master/pallets/deeper-node/src/lib.rs](https://github.com/deeper-chain/deeper-chain/blob/master/pallets/deeper-node/src/lib.rs)
+
+# 22，DeeperChain的pocr共识机制是如何运行的，credit pallet的作用是什么？
+
+PoCr 即信用证明共识机制的一个重要部分就是推荐机制，在 Deeper Chain 的热启动阶段，为了保证网络的安全性，节点入网采用严格的推荐制度，只有获得推荐名额的用户才能够获取 Deeper Connect 从而加入网络。加入网络的用户可以通过质押 DPR 代币来快速增加自己的信用积分，从而获取质押奖励和推荐名额。推荐制度既能保证网络的安全性，同时也兼顾了网络快速扩展的需求。
+
+PoCr奖励的分配方法：PoCr奖励的分配依赖于上面的部分计算结果，包括validator commission比例，和validator自己staking占所有给它的staking的比例，他们用来算出validator获得的PoCr奖励。
+然后我们再按照delegator 的credit占给这个validator的credit的总分比例 乘以 PoCr奖励去除commission的部分算出每个delegator的PoCr奖励。这里的计算方法貌似有问题——validator所占比例的算法和delegator所占比例的算法不一致，有可能这些比例的总和并不等于100%，造成实际发放的PoCr奖励并不等于应该发放的PoCr奖励
+
+除了奖励，还有惩罚。
+
+credit pallet主要是当前信用积分的计算，获得dpr计算奖励，还有就是一些惩罚的规则。
+
+# 23，DeeperChain支持Wasm虚拟机来运行智能合约吗？
+
+支持，Substrate 与 WebAssembly（Wasm） runtime 紧密集成，Substrate 使用 WebAssembly 作为其 runtime 的通用语言，用 Wasm 编写链的逻辑和智能合约，意味着你将拥有最好的工具来以快速可靠的方式执行逻辑。Substrate 有一种方法可以更快地执行代码，并且没有任何虚拟机的开销。
