@@ -16,8 +16,8 @@ const MainNav = {
             external: true,
           },
           {
-            linkTitle: `Blog`,
-            link: `https://deeper-network.medium.com/`,
+            linkTitle: `Contribute-to-earn DPR`,
+            link: `https://apps-dev.deeper.network/#/treasury/tips`,
             external: true,
           },
           {
@@ -27,7 +27,7 @@ const MainNav = {
           },
           {
             linkTitle: `Join the conversation`,
-            link: `https://join.slack.com/share/enQtMjcwNDczMjU1NDA5OC02YzNlNzY3MDRmMTU4MTM3N2I4NzI0ODZmMWExNTE0MDBiN2JmMDQ1MTIwYzJmMjcyMjIxMDkzMGI1NGU1Yjlj`,
+            link: `https://discord.com/invite/EWUyAJyH2B`,
             external: true,
           },
         ],

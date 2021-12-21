@@ -26,7 +26,7 @@ module.exports = {
     email: 'info@parity.io',
     twitter: 'https://twitter.com/deeper_network',
     linkedIn: 'https://www.linkedin.com/company/paritytech',
-    element: 'https://join.slack.com/share/enQtMjcwNDczMjU1NDA5OC02YzNlNzY3MDRmMTU4MTM3N2I4NzI0ODZmMWExNTE0MDBiN2JmMDQ1MTIwYzJmMjcyMjIxMDkzMGI1NGU1Yjlj',
+    element: 'https://discord.com/invite/EWUyAJyH2B',
     github: 'https://github.com/deeper-chain/deeper-chain',
     telegram: 'https://t.me/parity_technologies',
     gitter: 'https://gitter.im/paritytech/parity',

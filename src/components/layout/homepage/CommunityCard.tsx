@@ -11,7 +11,7 @@ export default function CommunityCard() {
       description: 'Have any questions? Get in touch!',
       headingOne: 'Join the conversation',
       iconOne: 'elementOrg',
-      linkTextOne: 'Slack',
+      linkTextOne: 'Discord',
       linkOne: siteMetadata.element,
       headingTwo: 'Find answers',
       iconTwo: 'stackOverflowOrg',
